@@ -185,6 +185,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         int a, b;
 
+        Integer result;
+
         public AdderAsyncTaskLoader(Context context, int a, int b) {
             super(context);
             this.a = a;
@@ -194,6 +196,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         @Override
         protected void onStartLoading() {
             super.onStartLoading();
+            if (result != null) {
+                deliverResult(result);
+            }
             forceLoad();
         }
 
@@ -205,7 +210,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            return a + b;
+            result = a + b;
+            return result;
+        }
+
+        @Override
+        protected void onStopLoading() {
+            super.onStopLoading();
+
         }
     }
 

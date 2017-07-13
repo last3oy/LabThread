@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public Loader<Object> onCreateLoader(int id, Bundle args) {
         if (id == 1) {
-            return new AdderAsyncTaskLoader(MainActivity.this,5, 10);
+            return new AdderAsyncTaskLoader(MainActivity.this, 5, 10);
         }
         return null;
     }
@@ -187,6 +187,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         Integer result;
 
+        Handler handler;
+
         public AdderAsyncTaskLoader(Context context, int a, int b) {
             super(context);
             this.a = a;
@@ -199,17 +201,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             if (result != null) {
                 deliverResult(result);
             }
-            forceLoad();
+            // Initialize Handler
+            if (handler == null) {
+                handler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        a = (int) (Math.random() * 100);
+                        b = (int) (Math.random() * 100);
+                        onContentChanged();
+                        handler.sendEmptyMessageDelayed(0, 3000);
+                    }
+                };
+                handler.sendEmptyMessageDelayed(0, 3000);
+            }
+            if (takeContentChanged() || result == null) {
+                forceLoad();
+            }
         }
 
         @Override
         public Integer loadInBackground() {
             // Background Thread
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             result = a + b;
             return result;
         }
@@ -217,7 +235,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         @Override
         protected void onStopLoading() {
             super.onStopLoading();
+        }
 
+        @Override
+        protected void onReset() {
+            super.onReset();
+            // Destroy handler
+            if (handler != null) {
+                handler.removeCallbacksAndMessages(null);
+                handler = null;
+            }
         }
     }
 

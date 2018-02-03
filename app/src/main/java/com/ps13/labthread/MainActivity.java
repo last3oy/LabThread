@@ -1,7 +1,9 @@
 package com.ps13.labthread;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -10,6 +12,7 @@ import android.os.Message;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -154,14 +157,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //        getSupportLoaderManager().initLoader(1, null, this);
 
         // Thread Method 7: IntentService
+        LocalBroadcastManager.getInstance(MainActivity.this)
+                .registerReceiver(counterBroadcastReceiver, new IntentFilter("CounterIntentServiceUpdate"));
+
         Intent intent = new Intent(MainActivity.this, CounterIntentService.class);
         intent.putExtra("abc", "123");
         startService(intent);
     }
 
+    protected BroadcastReceiver counterBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Works on Main Thread
+            int counter = intent.getIntExtra("counter", 0);
+            tvCounter.setText(counter);
+        }
+    };
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        LocalBroadcastManager.getInstance(MainActivity.this)
+                .unregisterReceiver(counterBroadcastReceiver);
 
         //thread.interrupt();
         //backgroundHandlerThread.quit();
